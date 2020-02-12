@@ -1,7 +1,8 @@
 # 基于 Seata 解决微服务架构下数据一致性的实践
 
 [Seata](https://github.com/seata/seata) 是一款开源的分布式事务解决方案，提供高性能和简单易用的分布式事务服务。   
-  
+
+
 
 本文将通过一个简单的微服务架构的例子，说明业务如何step by step的使用 Seata、Dubbo 来保证业务数据的一致性；
 
@@ -90,6 +91,7 @@ CREATE TABLE `undo_log` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT,
   `branch_id` bigint(20) NOT NULL,
   `xid` varchar(100) NOT NULL,
+  `context` varchar(128) NOT NULL,
   `rollback_info` longblob NOT NULL,
   `log_status` int(11) NOT NULL,
   `log_created` datetime NOT NULL,
@@ -137,7 +139,7 @@ CREATE TABLE `account_tbl` (
 
 ```xml
       <properties>
-          <seata.version>0.6.1</seata.version>
+          <seata.version>1.0.0</seata.version>
           <dubbo.alibaba.version>2.6.5</dubbo.alibaba.version>
        </properties>
         
@@ -275,7 +277,7 @@ create table `lock_table` (
   `transaction_id` long ,
   `branch_id` long,
   `resource_id` varchar(256) ,
-  `table_name` varchar(32) ,
+  `table_name` varchar(64) ,
   `pk` varchar(128) ,
   `gmt_create` datetime ,
   `gmt_modified` datetime,
@@ -293,6 +295,7 @@ create table `lock_table` (
 store.mode = "db"
 store.db.datasource=dbcp
 store.db.db-type=mysql
+store.db.driver-class-name=com.mysql.jdbc.Driver
 store.db.url=jdbc:mysql://127.0.0.1:3306/seata_server?useUnicode=true
 store.db.user=mysql
 store.db.password=mysql
@@ -330,6 +333,7 @@ store {
       datasource = "dbcp"
       ## mysql/oracle/h2/oceanbase etc.
       db-type = "mysql"
+      driver-class-name = com.mysql.jdbc.Driver
       url = "jdbc:mysql://127.0.0.1:3306/seata_server"
       user = "mysql"
       password = "mysql"
